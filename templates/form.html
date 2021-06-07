@@ -1,0 +1,41 @@
+{% extends 'base_template.html' %}
+{% block title %} AskMate|{{ page }} {% endblock %}
+
+{% block content %}
+  <form action="{{ url_for(action, page=page) }}" method="post" enctype = "multipart/form-data" style="margin: 40px 50% 40px 40px;" class="was-validated">
+    {% if 'new-tag' not in page %}
+    {% if page == 'add-question' or ('question' in page and request.base_url.endswith('edit')) %}
+    <div class="input-group input-group-lg">
+      <span class="style-mode input-group-text" id="inputGroup-sizing-lg">Question title</span>
+      <input type="text" name="title" class="style-mode form-control is-invalid" id="validationTextarea" value="{{ selected_question.title if selected_question }}" placeholder="Required title" required aria-label="Sizing example input" aria-describedby="inputGroup-sizing-lg">
+    </div><br>
+    {% endif %}
+    <div class="input-group">
+      <span class="style-mode input-group-text">Details</span>
+      <textarea name="message" class="style-mode form-control is-invalid" id="validationTextarea" placeholder="Required" required aria-label="Details">{% if message %} {{ message.message }} {% elif selected_question %} {{ selected_question.message|safe }} {% endif %}</textarea>
+    </div><br>
+    {% if 'comment' not in page %}
+    <div class="input-group mb-3">
+      <input type="file" class="form-control" id="style-mode" name="img" accept="image/*">
+      <label class="style-mode input-group-text" for="inputGroupFile02">Upload</label>
+    </div>
+    {% endif %}
+    <div class="centered mb-3">
+      <button class="btn btn-dark" type="submit">Submit</button>
+    </div>
+    {% else %}
+    <div>
+      <div>
+        <label for="tag_input"></label><input class="style-mode" type="text" placeholder="insert new tag" id="tag_input" name="new_tag">
+        <button type="submit" class="btn btn-dark"> Add </button>
+      </div><br>
+      <div>
+      {% for tag in tags %}
+        <button type="submit" name="tag" value="{{ tag.name }}" class="btn btn-outline-success">{{ tag.name }}</button>
+      {% endfor %}
+      </div><br>
+      <span class="style-mode input-group-text" id="inputGroup-sizing-lg"> Current tags: {{ ", ".join(question_tags.split()) }}</span>
+    </div>
+    {% endif %}
+  </form>
+{% endblock %}
