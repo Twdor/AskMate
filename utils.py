@@ -19,15 +19,13 @@ def get_user_id(user_name):
 
 
 def is_already_register(request):
-    return True if request.form['username'] in [email['user_name'] for email in data_manager.get_user_names()] \
-        else False
+    return request.form['username'] in [email['user_name'] for email in data_manager.get_user_names()]
 
 
 def are_valid_credentials(request):
     if is_already_register(request):
         user_password = data_manager.get_user_pass(request.form['username'])['password']
-        return True if is_valid_password(request.form['password'], user_password) else False
-    return False
+        return is_valid_password(request.form['password'], user_password)
 
 
 def hash_password(plain_text_password):
