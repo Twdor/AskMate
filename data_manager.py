@@ -2,6 +2,43 @@ import database_common
 
 
 @database_common.connection_handler
+def add_user(cursor, data):
+    query = """
+        INSERT INTO user_account
+        VALUES %(data)s"""
+    cursor.execute(query, {'data': data})
+
+
+@database_common.connection_handler
+def get_user_names(cursor):
+    query = """
+        SELECT user_name
+        FROM user_account"""
+    cursor.execute(query)
+    return cursor.fetchall()
+
+
+@database_common.connection_handler
+def get_user_pass(cursor, username):
+    query = """
+        SELECT password
+        FROM user_account
+        WHERE user_name = %(username)s"""
+    cursor.execute(query, {'username': username})
+    return cursor.fetchone()
+
+
+@database_common.connection_handler
+def get_user_id(cursor, username):
+    query = """
+        SELECT id
+        FROM user_account
+        WHERE user_name = %(username)s"""
+    cursor.execute(query, {'username': username})
+    return cursor.fetchone()
+
+
+@database_common.connection_handler
 def get_all_questions(cursor, order_by='submission_time', order_dir='DESC'):
     if (order_by in ['title', 'submission_time', 'message', 'view_number', 'vote_number']) \
             and (order_dir.upper() in ['ASC', 'DESC']):
@@ -107,7 +144,7 @@ def get_answer_img(cursor, answer_id):
 @database_common.connection_handler
 def add_answer(cursor, data):
     query = """
-        INSERT INTO answer (submission_time, vote_number, question_id, message, image)
+        INSERT INTO answer (submission_time, vote_number, question_id, user_id, message, image)
         VALUES %(data)s"""
     cursor.execute(query, {'data': data})
 
@@ -115,7 +152,7 @@ def add_answer(cursor, data):
 @database_common.connection_handler
 def add_question(cursor, data):
     query = """
-        INSERT INTO question (submission_time, view_number, vote_number, title, message, image)
+        INSERT INTO question (submission_time, view_number, vote_number, user_id, title, message, image)
         VALUES %(data)s"""
     cursor.execute(query, {'data': data})
 
@@ -193,7 +230,7 @@ def delete_tag_from_question(cursor,question_id,tag_id):
 @database_common.connection_handler
 def add_comment(cursor, data):
     query = """
-        INSERT INTO comment (question_id, answer_id, message, submission_time, edited_count)
+        INSERT INTO comment (question_id, answer_id, user_id, message, submission_time, edited_count)
         VALUES %(data)s"""
     cursor.execute(query, {'data': data})
 
@@ -204,6 +241,36 @@ def get_new_question_id(cursor):
         SELECT max(id) as new_id
         FROM question"""
     cursor.execute(query)
+    return cursor.fetchone()
+
+
+@database_common.connection_handler
+def get_user_id_by_question_id(cursor, question_id):
+    query = """
+        SELECT user_id
+        FROM question
+        WHERE id = %(question_id)s"""
+    cursor.execute(query, {'question_id': question_id})
+    return cursor.fetchone()
+
+
+@database_common.connection_handler
+def get_user_id_by_answer_id(cursor, answer_id):
+    query = """
+        SELECT user_id
+        FROM answer
+        WHERE id = %(answer_id)s"""
+    cursor.execute(query, {'answer_id': answer_id})
+    return cursor.fetchone()
+
+
+@database_common.connection_handler
+def get_user_id_by_comment_id(cursor, comment_id):
+    query = """
+        SELECT user_id
+        FROM comment
+        WHERE id = %(comment_id)s"""
+    cursor.execute(query, {'comment_id': comment_id})
     return cursor.fetchone()
 
 

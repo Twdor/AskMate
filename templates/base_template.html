@@ -43,15 +43,26 @@
                   <li><a class="dropdown-item" href="{{ url_for('style_mode', style_mode='night', page=request.base_url) }}">Night</a></li>
                 </ul>
               </li>
+              {% if 'username' in session %}
               <li class="nav-item">
-                {% block element %}{% endblock %}
+                <a class="nav-link active" aria-current="page" href="#">{{ session.username }}</a>
               </li>
               <li class="nav-item">
-                {% block list_all_link %}{% endblock %}
+                <a class="nav-link active" aria-current="page" href="{{ url_for('sign_out') }}">Sign out</a>
+              </li>
+              {% else %}
+              <li class="nav-item">
+                <a class="nav-link active" aria-current="page" href="{{ url_for('add_form', page='sign-up') }}">Sign up</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link active" aria-current="page" href="{{ url_for('sign_in') }}">Sign in</a>
+              </li>
+              {% endif %}
+              <li class="nav-item">
+                {% block add %}{% endblock %}
               </li>
             </ul>
-            {% block sort %}
-            {% endblock %}
+            {% block sort %}{% endblock %}
           </div>
         </div>
       </nav>

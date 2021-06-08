@@ -3,7 +3,7 @@
 
 {% block content %}
   <form action="{{ url_for(action, page=page) }}" method="post" enctype = "multipart/form-data" style="margin: 40px 50% 40px 40px;" class="was-validated">
-    {% if 'new-tag' not in page %}
+    {% if 'new-tag' not in page and 'sign' not in page %}
     {% if page == 'add-question' or ('question' in page and request.base_url.endswith('edit')) %}
     <div class="input-group input-group-lg">
       <span class="style-mode input-group-text" id="inputGroup-sizing-lg">Question title</span>
@@ -21,13 +21,13 @@
     </div>
     {% endif %}
     <div class="centered mb-3">
-      <button class="btn btn-dark" type="submit">Submit</button>
+      <button type="submit" class="style-mode btn btn-success">Add {{ page.split('-')[-1].title() }}</button>
     </div>
-    {% else %}
+    {% elif 'tag' in page %}
     <div>
       <div>
         <label for="tag_input"></label><input class="style-mode" type="text" placeholder="insert new tag" id="tag_input" name="new_tag">
-        <button type="submit" class="btn btn-dark"> Add </button>
+        <button type="submit" class="style-mode btn btn-success"> Add Tag </button>
       </div><br>
       <div>
       {% for tag in tags %}
@@ -36,6 +36,18 @@
       </div><br>
       <span class="style-mode input-group-text" id="inputGroup-sizing-lg"> Current tags: {{ ", ".join(question_tags.split()) }}</span>
     </div>
+    {% else %}
+    <div class="input-group">
+      <span class="style-mode input-group-text">Username</span>
+      <input type="email" name="username" class="style-mode form-control is-invalid" id="validationTextarea" placeholder="Email address" required aria-label="Username">
+    </div><br>
+    <div class="input-group">
+      <span class="style-mode input-group-text">Password</span>
+      <input type="password" name="password" class="style-mode form-control is-invalid" id="validationTextarea" placeholder="Six or more characters" pattern=".{6,}" title="Six or more characters" required aria-label="Password">
+    </div><br>
+      <button type="submit" class="style-mode btn btn-success">{{ page.replace('-', ' ').title() }}</button>
+      {% if already_register_email %} <div style="margin-top: 10px"><h5 class="text-danger">Email address already register, please try again or sign in!</h5></div> {% endif %}
+      {% if invalid_credentials %} <div style="margin-top: 10px"><h5 class="text-danger">Invalid credentials, please try again or sign up!</h5></div> {% endif %}
     {% endif %}
   </form>
 {% endblock %}

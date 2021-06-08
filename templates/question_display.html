@@ -1,10 +1,9 @@
 {% extends 'base_template.html' %}
 {% block title %} AskMate|{{ question['title'] }} {% endblock %}
 
-{% block element %}
-  <a class="btn btn-outline-success centered" href="{{ url_for('add_form', page='question-{}-new-answer'.format(question.id)) }}">Add answer</a>
+{% block add %}
+  <a class="btn btn-outline-success" href="{{ url_for('add_form', page='question-{}-new-answer'.format(question.id)) }}">Add answer</a>
 {% endblock %}
-{% block sort %}{% endblock %}
 
 {% block content %}
   <div style="width: 50%; margin: 50px auto 50px auto; border-color: {{ font_color }}; background-color: {{ background_color }};" class="card">
@@ -16,11 +15,13 @@
       {% if question['image'] %}
         <span class="centered"><img src="{{ question['image'] }}" width="200px" alt="image uploaded by user"></span>
       {% endif %}
+      {% if has_question_privilege %}
       <div class="bg-{{ style }} clearfix">
         <a href="{{ url_for('delete_form', page='question-{}'.format(question.id)) }}" onclick="return confirm('Are you sure you want to delete this question?')" class="btn btn-outline-danger float-start">delete</a>
         <a href="{{ url_for('edit_form', page='question-{}'.format(question.id)) }}" class="btn btn-outline-secondary float-end">edit</a>
         <a href="{{ url_for('add_form', page='question-{}-new-tag'.format(question.id)) }}" class="btn btn-outline-secondary float-end">add tag</a>
       </div>
+      {% endif %}
     </div>
     <div style="margin-bottom: 10px; display: grid; justify-content: center" class="card-footer text-muted">
       {{ question['submission_time'].strftime("%Y-%m-%d %H:%M") }}<br>
@@ -31,9 +32,11 @@
       {% for tag in question_tags %}
         <span class="badge rounded-pill bg-secondary" style="margin-left: 10px; float: right;">
           <a style="font-size: 17px">{{ tag['name'] }}</a>
+          {% if has_question_privilege %}
           <a href="{{ url_for('delete_form', page='question-{}-tag-{}'.format(question.id, tag.id)) }}">
             <button type="button" class="btn-close" aria-label="Close" style="float: right;"></button>
           </a>
+          {% endif %}
         </span>
       {% endfor %}
     </div>
@@ -49,8 +52,10 @@
             <div style="color: {{ font_color }}; background-color: {{ background_color }}" class="accordion-body">
               {{ comment['message']|capitalize|safe }}<br><br>
               <div style="margin-top: 10px" class="bg-{{ background_color }} clearfix">
+                {% if has_comment_privilege(session, comment.id) %}
                 <a href="{{ url_for('delete_form', page='comments-{}'.format(comment.id)) }}" onclick="return confirm('Are you sure you want to delete this comment?')" class="btn btn-outline-danger float-start">delete</a>
                 <a href="{{ url_for('edit_form', page='comment-{}'.format(comment.id)) }}" class="btn btn-outline-secondary float-end">. edit .</a>
+                {% endif %}
                 <h6 class="text-muted centered">{{ "Edited {} {}".format(comment.edited_count, 'times' if comment.edited_count > 1 else 'time') if comment.edited_count }}</h6>
               </div>
             </div>
@@ -67,8 +72,10 @@
           <span class="centered"><img src="{{ answer.image }}" width="200px" alt="image uploaded by user"></span>
         {% endif %}
         <div style="margin-top: 10px" class="bg-{{ background_color }} clearfix">
+          {% if has_answer_privilege(session, answer.id) %}
           <a href="{{ url_for('delete_form', page='answer-{}'.format(answer.id)) }}" onclick="return confirm('Are you sure you want to delete this answer?')" class="btn btn-outline-danger float-start">delete</a>
           <a href="{{ url_for('edit_form', page='answer-{}'.format(answer.id)) }}" class="btn btn-outline-secondary float-start">edit</a>
+          {% endif %}
           <div class="btn-group float-end">
             <a href="{{ url_for('vote', id=answer.id, value=1, page=request.base_url) }}" class="btn btn-outline-success" aria-current="page"><img style="width: 25px" src="/static/icons/vote_up.png" alt="vote up sign"></a>
             <a class="btn btn-outline-secondary disabled">{{ answer.vote_number }}</a>
@@ -93,10 +100,11 @@
             <div id="collapse{{ comment.id }}" {% if comment.submission_time == latest_answer_comment(answer.id).get('max') %}class="accordion-collapse collapse show" {% else %}class="accordion-collapse collapse"{% endif %} aria-labelledby="heading{{ comment.id }}" data-bs-parent="#accordionAnswerComments">
               <div class="style-mode accordion-body">
                 {{ comment['message']|capitalize|safe }}<br><br>
-                <div style="margin-top: 10px" class="bg-{{ style }} clearfix">
+                <div style="margin-top: 10px" class="bg-{{ background_color }} clearfix">
+                  {% if has_comment_privilege(session, comment.id) %}
                   <a href="{{ url_for('delete_form', page='comments-{}'.format(comment.id)) }}" onclick="return confirm('Are you sure you want to delete this comment?')" class="btn btn-outline-danger float-start">delete</a>
                   <a href="{{ url_for('edit_form', page='comment-{}'.format(comment.id)) }}" class="btn btn-outline-secondary float-end">. edit .</a>
-
+                  {% endif %}
                   <h6 class="text-muted centered">{{ "Edited {} {}".format(comment.edited_count, 'times' if comment.edited_count > 1 else 'time') if comment.edited_count }}</h6>
                 </div>
               </div>

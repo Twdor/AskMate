@@ -43,8 +43,58 @@ def index():
         all_questions=all_questions if 'list' in request.base_url else all_questions[:5],
         background_color=background_color,
         font_color=font_color,
-        count_question_answers=data_manager.count_question_answers
+        count_question_answers=data_manager.count_question_answers,
+        session=session
     )
+
+
+@app.route('/sign-up', methods=['GET', 'POST'])
+def sign_up():
+    background_color, font_color = style_mode()
+    already_register_email = False
+    if request.form:
+        if utils.is_already_register(request):
+            already_register_email = True
+        else:
+            utils.add_user(request)
+            return redirect('/')
+
+    return render_template(
+        "form.html",
+        background_color=background_color,
+        font_color=font_color,
+        page='sign-up',
+        action='sign_up',
+        already_register_email=already_register_email
+    )
+
+
+@app.route('/sign-in', methods=['GET', 'POST'])
+def sign_in():
+    background_color, font_color = style_mode()
+    invalid_credentials = False
+
+    if request.form:
+        if utils.are_valid_credentials(request):
+            session.update({'username': request.form['username']})
+            return redirect('/')
+        else:
+            invalid_credentials = True
+
+    return render_template(
+        "form.html",
+        background_color=background_color,
+        font_color=font_color,
+        page='sign-in',
+        action='sign_in',
+        invalid_credentials=invalid_credentials
+    )
+
+
+@app.route('/sign-out')
+def sign_out():
+    session.pop('username', None)
+    return redirect('/')
 
 
 @app.route("/search")
@@ -63,7 +113,8 @@ def search():
         background_color=background_color,
         font_color=font_color,
         phrase=request.values.get("q"),
-        count_question_answers=data_manager.count_question_answers
+        count_question_answers=data_manager.count_question_answers,
+        session=session
     )
 
 
@@ -83,17 +134,24 @@ def question_page(question_id):
         question_tags=data_manager.get_question_tags(question_id),
         background_color=background_color,
         font_color=font_color,
+        session=session,
+        has_question_privilege=utils.has_question_privilege(session, question_id),
+        has_comment_privilege=utils.has_comment_privilege,
+        has_answer_privilege=utils.has_answer_privilege
     )
 
 
 @app.route('/<page>/delete')
 def delete_form(page):
-    page_for_redirect = utils.delete_and_get_page(page)
-    return redirect(page_for_redirect)
+    redirect_page = utils.delete_and_redirect(page)
+    return redirect(redirect_page)
 
 
 @app.route("/<page>", methods=["GET", "POST"])
 def add_form(page):
+    if (page.endswith('question') or page.endswith('answer')) and 'username' not in session:
+        return redirect(url_for('sign_in'))
+
     background_color, font_color = style_mode()
     page_id = utils.get_page_id(page)
     all_tags, question_tags, question_tags_string = None, None, None
@@ -102,8 +160,8 @@ def add_form(page):
         all_tags, question_tags, question_tags_string = utils.get_tags(page_id)
 
     if request.form:
-        page_for_redirect = utils.add_and_get_page(page, request)
-        return redirect(page_for_redirect)
+        redirect_page = utils.add_and_redirect(page, request, session.get('username') if 'username' in session else None)
+        return redirect(redirect_page)
 
     return render_template(
         "form.html",
@@ -112,7 +170,7 @@ def add_form(page):
         page=page,
         action='add_form',
         tags=all_tags,
-        question_tags=question_tags_string
+        question_tags=question_tags_string,
     )
 
 
@@ -122,8 +180,8 @@ def edit_form(page):
     background_color, font_color = style_mode()
 
     if request.form:
-        page_for_redirect = utils.edit_and_get_page(page, request)
-        return redirect(page_for_redirect)
+        redirect_page = utils.edit_and_redirect(page, request)
+        return redirect(redirect_page)
 
     return render_template(
         "form.html",

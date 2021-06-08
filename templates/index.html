@@ -1,41 +1,37 @@
 {% extends 'base_template.html' %}
 {% block title %} {% if 'list' not in request.base_url %} AskMate {% else %} AskMate|List all Questions {% endif %}{% endblock %}
 
-{% block element %}
-  <a class="btn btn-outline-success centered" href="{{ url_for('add_form', page='add-question') }}">Add Question</a>
+{% block add %}
+  <a class="btn btn-outline-success" href="{{ url_for('add_form', page='add-question') }}">Add Question</a>
 {% endblock %}
 
-{% block list_all_link %}
+{% block sort %}
   {% if request.base_url == "http://127.0.0.1:5000/" %}
-    <a href="/list"><button type="button" class="btn btn-link">List all Questions</button></a>
+    <a class="nav-link active" aria-current="page" href="/list">List all Questions</a>
   {% endif %}
+  <form action="{{ url_for('search') }}" class="d-flex">
+    {% for direction in ['Sort asc', 'Sort desc'] %}
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle text-secondary text-muted" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+        {{ direction }}
+      </a>
+      <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+        {% for type in ['title', 'submission_time', 'message', 'view_number', 'vote_number'] %}
+        <li><a class="dropdown-item"
+              {% if "list" in request.base_url %}
+                href="/list?order_by={{ type }}&order_direction={{ direction[5:] }}"
+              {% else %}
+                href="/?order_by={{ type }}&order_direction={{ direction[5:] }}"
+              {% endif %}
+        >{{ ' '.join(type.split('_')) }}</a></li>
+        {% endfor %}
+      </ul>
+    </li>
+    {% endfor %}
+    <input class="form-control me-2" type="search" name="q" placeholder="Search" aria-label="Search">
+    <button class="btn btn-outline-success" type="submit">Search</button>
+  </form>
 {% endblock %}
-{% if request.base_url == "http://127.0.0.1:5000/" %}
-  {% block sort %}
-    <form action="{{ url_for('search') }}" class="d-flex">
-      {% for direction in ['Sort asc', 'Sort desc'] %}
-      <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle text-secondary text-muted" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-          {{ direction }}
-        </a>
-        <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-          {% for type in ['title', 'submission_time', 'message', 'view_number', 'vote_number'] %}
-          <li><a class="dropdown-item"
-                {% if "list" in request.base_url %}
-                  href="/list?order_by={{ type }}&order_direction={{ direction[5:] }}"
-                {% else %}
-                  href="/?order_by={{ type }}&order_direction={{ direction[5:] }}"
-                {% endif %}
-          >{{ ' '.join(type.split('_')) }}</a></li>
-          {% endfor %}
-        </ul>
-      </li>
-      {% endfor %}
-      <input class="form-control me-2" type="search" name="q" placeholder="Search" aria-label="Search">
-      <button class="btn btn-outline-success" type="submit">Search</button>
-    </form>
-  {% endblock %}
-{% endif %}
 {% block content %}
   {% for question in all_questions %}
     <div id="{{ question['id'] }}" style="width: 50%; margin: 50px auto 50px auto; border-color: {{ font_color }}; background-color: {{ background_color }};" class="card">
