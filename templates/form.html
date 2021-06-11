@@ -21,7 +21,13 @@
     </div>
     {% endif %}
     <div class="centered mb-3">
-      <button type="submit" class="style-mode btn btn-success">Add {{ page.split('-')[-1].title() }}</button>
+      <button type="submit" class="style-mode btn btn-success">
+        {% if 'edit' not in request.base_url %}
+        Add {{ page.split('-')[-1].title() }}
+        {% else %}
+        Edit {{ page.split('-')[0].title() }}
+        {% endif %}
+      </button>
     </div>
     {% elif 'tag' in page %}
     <div>
@@ -37,15 +43,22 @@
       <span class="style-mode input-group-text" id="inputGroup-sizing-lg"> Current tags: {{ ", ".join(question_tags.split()) }}</span>
     </div>
     {% else %}
+      {% if page == 'sign-up' %}
+      <div class="input-group">
+        <span class="style-mode input-group-text">User name</span>
+        <input type="text" name="username" class="style-mode form-control is-invalid" id="validationTextarea" placeholder="User name" required aria-label="User name">
+      </div><br>
+      {% endif %}
     <div class="input-group">
-      <span class="style-mode input-group-text">Username</span>
-      <input type="email" name="username" class="style-mode form-control is-invalid" id="validationTextarea" placeholder="Email address" required aria-label="Username">
+      <span class="style-mode input-group-text">Email address</span>
+      <input type="email" name="email" class="style-mode form-control is-invalid" id="validationTextarea" placeholder="Email address" required aria-label="Email address">
     </div><br>
     <div class="input-group">
       <span class="style-mode input-group-text">Password</span>
       <input type="password" name="password" class="style-mode form-control is-invalid" id="validationTextarea" placeholder="Six or more characters" pattern=".{6,}" title="Six or more characters" required aria-label="Password">
     </div><br>
       <button type="submit" class="style-mode btn btn-success">{{ page.replace('-', ' ').title() }}</button>
+      {% if user_name_taken %} <div style="margin-top: 10px"><h5 class="text-danger">User name taken, please try another one!</h5></div> {% endif %}
       {% if already_register_email %} <div style="margin-top: 10px"><h5 class="text-danger">Email address already register, please try again or sign in!</h5></div> {% endif %}
       {% if invalid_credentials %} <div style="margin-top: 10px"><h5 class="text-danger">Invalid credentials, please try again or sign up!</h5></div> {% endif %}
     {% endif %}

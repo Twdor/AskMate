@@ -10,6 +10,123 @@ def add_user(cursor, data):
 
 
 @database_common.connection_handler
+def add_user_vote_status(cursor, data):
+    query = """
+        INSERT INTO user_vote_status
+        VALUES %(data)s"""
+    cursor.execute(query, {'data': data})
+
+
+@database_common.connection_handler
+def get_vote_status(cursor, selected_page_id, page_id):
+    query = f"""
+        SELECT id,  {page_id} as page_id
+        FROM user_vote_status
+        WHERE {selected_page_id} = %(page_id)s"""
+    cursor.execute(query, {'selected_page_id': selected_page_id, 'page_id': page_id})
+    return cursor.fetchall()
+
+
+@database_common.connection_handler
+def update_reputation(cursor, user_id, value):
+    query = """
+        UPDATE user_account
+        SET reputation = reputation + %(value)s
+        WHERE id = %(user_id)s"""
+    cursor.execute(query, {'user_id': user_id, 'value': value})
+
+
+@database_common.connection_handler
+def get_users_table(cursor):
+    query = """
+        WITH counting_questions as (
+            SELECT user_id,
+                   count(*) AS number_questions
+            FROM question
+            GROUP BY user_id
+            ),
+             counting_answers as (
+                SELECT  user_id,
+                       count(*) as number_answers
+                FROM answer
+                GROUP BY user_id
+                ),
+             counting_comments as (
+                 SELECT user_id,
+                        count(*) as number_comments
+                 FROM comment
+                 GROUP BY user_id
+             )
+        SELECT id,
+               user_name,
+               email_address,
+               registration_date,
+               coalesce(counting_questions.number_questions, 0) as questions,
+               coalesce(counting_answers.number_answers, 0) as answers,
+               coalesce(counting_comments.number_comments, 0) as comments,
+               reputation
+        FROM user_account
+        LEFT JOIN counting_questions ON user_account.id = counting_questions.user_id
+        LEFT join counting_answers ON user_account.id = counting_answers.user_id
+        LEFT join counting_comments on user_account.id = counting_comments.user_id
+        ORDER BY registration_date"""
+    cursor.execute(query)
+    return cursor.fetchall()
+
+
+@database_common.connection_handler
+def get_user_questions(cursor, user_id):
+    query = """
+        SELECT id, title
+        FROM question
+        WHERE user_id = %(user_id)s
+        ORDER BY submission_time"""
+    cursor.execute(query, {'user_id': user_id})
+    return cursor.fetchall()
+
+
+@database_common.connection_handler
+def get_accepted_status_by_question_id(cursor, question_id):
+    query = """
+        SELECT accepted_status
+        FROM answer
+        WHERE question_id = %(question_id)s"""
+    cursor.execute(query, {'question_id': question_id})
+    return cursor.fetchall()
+
+
+@database_common.connection_handler
+def get_user_answers(cursor, user_id):
+    query = """
+        SELECT id, question_id, message, accepted_status
+        FROM answer
+        WHERE user_id = %(user_id)s
+        ORDER BY submission_time"""
+    cursor.execute(query, {'user_id': user_id})
+    return cursor.fetchall()
+
+
+@database_common.connection_handler
+def get_user_comments(cursor, user_id):
+    query = """
+        SELECT id, question_id, answer_id, message
+        FROM comment
+        WHERE user_id = %(user_id)s
+        ORDER BY submission_time"""
+    cursor.execute(query, {'user_id': user_id})
+    return cursor.fetchall()
+
+
+@database_common.connection_handler
+def get_user_emails(cursor):
+    query = """
+        SELECT email_address
+        FROM user_account"""
+    cursor.execute(query)
+    return cursor.fetchall()
+
+
+@database_common.connection_handler
 def get_user_names(cursor):
     query = """
         SELECT user_name
@@ -19,22 +136,32 @@ def get_user_names(cursor):
 
 
 @database_common.connection_handler
+def get_username(cursor, email):
+    query = """
+        SELECT user_name
+        FROM user_account
+        WHERE email_address = %(email)s"""
+    cursor.execute(query, {'email': email})
+    return cursor.fetchone()
+
+
+@database_common.connection_handler
 def get_user_pass(cursor, username):
     query = """
         SELECT password
         FROM user_account
-        WHERE user_name = %(username)s"""
+        WHERE email_address = %(username)s"""
     cursor.execute(query, {'username': username})
     return cursor.fetchone()
 
 
 @database_common.connection_handler
-def get_user_id(cursor, username):
+def get_user_id(cursor, email):
     query = """
         SELECT id
         FROM user_account
-        WHERE user_name = %(username)s"""
-    cursor.execute(query, {'username': username})
+        WHERE email_address = %(email)s"""
+    cursor.execute(query, {'email': email})
     return cursor.fetchone()
 
 
@@ -144,9 +271,18 @@ def get_answer_img(cursor, answer_id):
 @database_common.connection_handler
 def add_answer(cursor, data):
     query = """
-        INSERT INTO answer (submission_time, vote_number, question_id, user_id, message, image)
+        INSERT INTO answer (submission_time, vote_number, accepted_status, question_id, user_id, message, image)
         VALUES %(data)s"""
     cursor.execute(query, {'data': data})
+
+
+@database_common.connection_handler
+def update_accepted_status(cursor, answer_id, status):
+    query = """
+        UPDATE answer
+        SET accepted_status = %(status)s
+        WHERE id = %(answer_id)s"""
+    cursor.execute(query, {'answer_id': answer_id, 'status': status})
 
 
 @database_common.connection_handler
@@ -185,6 +321,19 @@ def get_question_tags(cursor, question_id):
         WHERE id IN (SELECT tag_id from question_tag WHERE question_id=%(question_id)s)
     """
     cursor.execute(query, {'question_id': question_id})
+    return cursor.fetchall()
+
+
+@database_common.connection_handler
+def get_questions_by_tag(cursor, tag):
+    tag_id = get_tag_by_name(tag)['id']
+    query = """
+        SELECT id, title
+        FROM question
+        WHERE id IN (SELECT question_id FROM question_tag WHERE tag_id = %(tag_id)s)
+        ORDER BY submission_time
+    """
+    cursor.execute(query, {'tag_id': tag_id})
     return cursor.fetchall()
 
 
@@ -251,6 +400,16 @@ def get_user_id_by_question_id(cursor, question_id):
         FROM question
         WHERE id = %(question_id)s"""
     cursor.execute(query, {'question_id': question_id})
+    return cursor.fetchone()
+
+
+@database_common.connection_handler
+def get_user_name_by_user_id(cursor, user_id):
+    query = """
+        SELECT user_name
+        FROM user_account
+        WHERE id = %(user_id)s"""
+    cursor.execute(query, {'user_id': user_id})
     return cursor.fetchone()
 
 
@@ -347,10 +506,10 @@ def vote_answer(cursor, answer_id, value):
 @database_common.connection_handler
 def get_question_comments(cursor, question_id):
     query = """
-        SELECT id, message, submission_time, edited_count
+        SELECT id, user_id, message, submission_time, edited_count
         FROM comment
         WHERE question_id = %(question_id)s
-        ORDER BY submission_time DESC"""
+        ORDER BY submission_time"""
     cursor.execute(query, {'question_id': question_id})
     return cursor.fetchall()
 
@@ -358,32 +517,12 @@ def get_question_comments(cursor, question_id):
 @database_common.connection_handler
 def get_answer_comments(cursor, answer_id=None):
     query = """
-        SELECT id, message, submission_time, edited_count
+        SELECT id, user_id, message, submission_time, edited_count
         FROM comment
         WHERE answer_id = %(answer_id)s
-        ORDER BY submission_time DESC"""
+        ORDER BY submission_time"""
     cursor.execute(query, {'answer_id': answer_id})
     return cursor.fetchall()
-
-
-@database_common.connection_handler
-def get_latest_comment_from_question(cursor, question_id):
-    query = """
-        SELECT max(submission_time)
-        FROM comment
-        WHERE question_id = %(question_id)s"""
-    cursor.execute(query, {'question_id': question_id})
-    return cursor.fetchone()
-
-
-@database_common.connection_handler
-def get_latest_comment_from_answer(cursor, answer_id=None):
-    query = """
-        SELECT max(submission_time)
-        FROM comment
-        WHERE answer_id = %(answer_id)s"""
-    cursor.execute(query, {'answer_id': answer_id})
-    return cursor.fetchone()
 
 
 @database_common.connection_handler

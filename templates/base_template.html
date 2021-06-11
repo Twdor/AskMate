@@ -20,6 +20,13 @@
             color: {{ font_color }};
             background-color: {{ background_color }};
           }
+          #tag-hyper {
+              color: whitesmoke;
+              text-decoration: None;
+          }
+          #tag-hyper:hover {
+              text-decoration: underline;
+          }
         </style>
     </head>
     <body>
@@ -43,21 +50,27 @@
                   <li><a class="dropdown-item" href="{{ url_for('style_mode', style_mode='night', page=request.base_url) }}">Night</a></li>
                 </ul>
               </li>
-              {% if 'username' in session %}
+              {% if 'email' in session %}
               <li class="nav-item">
-                <a class="nav-link active" aria-current="page" href="#">{{ session.username }}</a>
+                <a style="color: greenyellow" class="nav-link active" aria-current="page" href="{{ url_for('user_page', user_id=current_user_id) }}">{{ username }}</a>
               </li>
               <li class="nav-item">
-                <a class="nav-link active" aria-current="page" href="{{ url_for('sign_out') }}">Sign out</a>
+                <a class="nav-link active-" aria-current="page" href="{{ url_for('sign_out') }}">Sign out</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link active-" aria-current="page" href="{{ url_for('users_page') }}">Users table</a>
               </li>
               {% else %}
               <li class="nav-item">
-                <a class="nav-link active" aria-current="page" href="{{ url_for('add_form', page='sign-up') }}">Sign up</a>
+                <a class="nav-link active-" aria-current="page" href="{{ url_for('add_form', page='sign-up') }}">Sign up</a>
               </li>
               <li class="nav-item">
-                <a class="nav-link active" aria-current="page" href="{{ url_for('sign_in') }}">Sign in</a>
+                <a class="nav-link active-" aria-current="page" href="{{ url_for('sign_in') }}">Sign in</a>
               </li>
               {% endif %}
+              <li class="nav-item">
+                <a class="nav-link active-" href="/tags">Tags</a>
+              </li>
               <li class="nav-item">
                 {% block add %}{% endblock %}
               </li>
@@ -66,8 +79,6 @@
           </div>
         </div>
       </nav>
-        {% block content %}
-        {% endblock %}
-
+        {% block content %}{% endblock %}
     </body>
 </html>

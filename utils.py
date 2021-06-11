@@ -1,9 +1,8 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 import data_manager
 import os
 import uuid
 import bcrypt
-
 
 PAGE_IDX, TAG_IDX = 1, 3
 TIME = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -14,17 +13,26 @@ def get_new_user_id():
     return user_id
 
 
-def get_user_id(user_name):
-    return data_manager.get_user_id(user_name)['id'] if user_name else user_name
+def get_current_user_id(session):
+    return data_manager.get_user_id(session['email']).get('id') if 'email' in session else None
 
 
-def is_already_register(request):
-    return request.form['username'] in [email['user_name'] for email in data_manager.get_user_names()]
+def get_username(session):
+    if 'email' in session:
+        return data_manager.get_username(session.get('email')).get('user_name')
+
+
+def is_email_already_register(request):
+    return request.form['email'] in [email['email_address'] for email in data_manager.get_user_emails()]
+
+
+def is_username_taken(request):
+    return request.form['username'] in [username['user_name'] for username in data_manager.get_user_names()]
 
 
 def are_valid_credentials(request):
-    if is_already_register(request):
-        user_password = data_manager.get_user_pass(request.form['username'])['password']
+    if is_email_already_register(request):
+        user_password = data_manager.get_user_pass(request.form['email'])['password']
         return is_valid_password(request.form['password'], user_password)
 
 
@@ -39,24 +47,31 @@ def is_valid_password(plain_text_password, hashed_password):
 
 
 def has_question_privilege(session, question_id):
-    if 'username' in session:
-        current_user_id = data_manager.get_user_id(session['username']).get('id')
+    if 'email' in session:
+        current_user_id = data_manager.get_user_id(session['email']).get('id')
         question_owner_id = data_manager.get_user_id_by_question_id(question_id).get('user_id')
         return question_owner_id == current_user_id
 
 
 def has_answer_privilege(session, answer_id):
-    if 'username' in session:
-        current_user_id = data_manager.get_user_id(session['username']).get('id')
-        answer_owner_id = data_manager.get_user_id_by_answer_id(answer_id)
+    if 'email' in session:
+        current_user_id = data_manager.get_user_id(session['email']).get('id')
+        answer_owner_id = data_manager.get_user_id_by_answer_id(answer_id).get('user_id')
         return current_user_id == answer_owner_id
 
 
 def has_comment_privilege(session, comment_id):
-    if 'username' in session:
-        current_user_id = data_manager.get_user_id(session['username']).get('id')
-        comment_owner_id = data_manager.get_user_id_by_comment_id(comment_id)
+    if 'email' in session:
+        current_user_id = data_manager.get_user_id(session['email']).get('id')
+        comment_owner_id = data_manager.get_user_id_by_comment_id(comment_id).get('user_id')
         return current_user_id == comment_owner_id
+
+
+def update_to_pretty_time(real_dict_list):
+    for dic in real_dict_list:
+        dic.update({'submission_time': get_pretty_time(dic['submission_time'])})
+
+    return real_dict_list
 
 
 def get_formatted_dict(dictionary):
@@ -75,6 +90,69 @@ def get_style(style_mode):
         return 'whitesmoke', 'black'
     else:
         return 'black', 'whitesmoke'
+
+
+def get_keys(real_dict_list):
+    accepted_status = []
+    if real_dict_list:
+        for real_dict in real_dict_list:
+            accepted_status.append(real_dict['accepted_status'])
+    return accepted_status
+
+
+def get_table_page_style(style_mode):
+    if style_mode == 'day':
+        return 'light', 'dark'
+    else:
+        return 'dark', 'light'
+
+
+def vote_question(idx, value, session):
+    question_owner_id = data_manager.get_user_id_by_question_id(idx).get('user_id')
+    current_user_id = get_current_user_id(session)
+    vote_status = data_manager.get_vote_status('question_id', idx)
+    vote_right = True
+    for vote in vote_status:
+        if vote['id'] == current_user_id:
+            vote_right = False
+    if vote_right and (question_owner_id != current_user_id):
+        data_manager.add_user_vote_status((current_user_id, idx))
+        data_manager.vote_question(idx, int(value))
+        data_manager.update_reputation(idx, 5 if int(value) > 0 else -2)
+
+
+def vote_answer(idx, value, session):
+    answer_owner_id = data_manager.get_user_id_by_answer_id(idx).get('user_id')
+    current_user_id = get_current_user_id(session)
+    vote_status = data_manager.get_vote_status('answer_id', idx)
+    vote_right = True
+    for vote in vote_status:
+        if vote['id'] == current_user_id:
+            vote_right = False
+    if vote_right and (answer_owner_id != current_user_id):
+        data_manager.add_user_vote_status((current_user_id, None, idx))
+        data_manager.vote_answer(idx, int(value))
+        data_manager.update_reputation(idx, 10 if int(value) > 0 else -2)
+
+
+def get_pretty_time(posted_time):
+    elapsed_time = datetime.now() - posted_time
+    years, days = divmod(elapsed_time.days, 365)
+    months, days = divmod(days, 30)
+    hours, seconds = divmod(elapsed_time.seconds, 3600)
+    minutes, seconds = divmod(seconds, 60)
+    if years > 0:
+        return f'last year' if years == 1 else f'{years} years ago'
+    elif months > 0:
+        return f'last month' if months == 1 else f'{months} months ago'
+    elif days > 0:
+        return f'yesterday' if days == 1 else f'{days} days ago'
+    elif hours > 0:
+        return f'{hours} hour ago' if hours == 1 else f'{hours} hours ago'
+    elif minutes > 0:
+        return f'{minutes} minute ago' if minutes == 1 else f'{minutes} minutes ago'
+    elif seconds > 0:
+        return f'just now' if seconds == 1 else f'{seconds} seconds ago'
 
 
 def saved_img(request):
@@ -101,9 +179,9 @@ def delete_img(files_path):
             os.remove(abs_file_path)
 
 
-def add_and_redirect(page, request, user_name=None):
+def add_and_redirect(page, request, email):
     page_id = get_page_id(page)
-    user_id = get_user_id(user_name)
+    user_id = data_manager.get_user_id(email).get('id')
 
     if page == 'add-question':
         add_question(request, user_id)
@@ -123,7 +201,16 @@ def add_and_redirect(page, request, user_name=None):
 
 
 def add_user(request):
-    data_manager.add_user((get_new_user_id(), request.form['username'], TIME, hash_password(request.form['password'])))
+    data_manager.add_user(
+        (
+            get_new_user_id(),
+            request.form['username'],
+            request.form['email'],
+            TIME,
+            hash_password(request.form['password']),
+            0
+        )
+    )
 
 
 def add_tag(page_id, request):
@@ -152,7 +239,7 @@ def add_comment_and_redirect(page, page_id, request, user_id):
 
 def add_answer(page_id, request, user_id):
     file_name = saved_img(request)
-    new_answer = (TIME, 0, page_id, user_id, request.form['message'], file_name)
+    new_answer = (TIME, 0, False, page_id, user_id, request.form['message'], file_name)
     data_manager.add_answer(new_answer)
 
 

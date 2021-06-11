@@ -1,0 +1,40 @@
+{% extends 'base_template.html' %}
+{% block title %} AskMate|Tag List {% endblock %}
+{% block content %}
+<table style="margin-top: 5px" class="h4 table table-{{ night }} table-hover">
+  <thead>
+    <tr style="color: teal">
+      {% for tag in tags %}
+      <th scope="col">{{ tag.name|title }}</th>
+      {% endfor %}
+    </tr>
+  </thead>
+  <tbody>
+    <tr class="table-{{ day }}">
+      {% for tag in tags %}
+        <td><a href='/tags/{{ tag.name }}' style="font-size: 25px" class="btn btn-link {{ 'disabled' if get_questions_by_tag(tag.name)|length == 0 }}">{{ get_questions_by_tag(tag.name)|length }}</a></td>
+      {% endfor %}
+    </tr>
+  </tbody>
+</table>
+{% if selected_tag %}
+<div style="margin: 5%">
+  <table class="h4 table table-{{ day }} table-hover">
+    <thead>
+      <tr>
+        <th style="color: teal" class="centered table-dark" scope="col">{{ selected_tag|title }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for question in get_questions_by_tag(selected_tag) %}
+      <tr class="table-{{ 'success' if true in is_question_solved(question_accepted_answers(question.id)) }}">
+        <td><a href="/question/{{ question.id }}">{{ question.title|capitalize|safe }}</a>
+          {% if true in is_question_solved(question_accepted_answers(question.id)) %}<a href="/question/{{ question.id }}" class="btn btn-outline-success float-end">Solved</a>{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endblock %}

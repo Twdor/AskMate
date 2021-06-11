@@ -20,9 +20,17 @@ DROP TABLE IF EXISTS public.user_account;
 CREATE TABLE user_account (
     id CHARACTER VARYING(255) UNIQUE NOT NULL,
     user_name CHARACTER VARYING(255) UNIQUE NOT NULL,
+    email_address CHARACTER VARYING(255) UNIQUE NOT NULL,
     registration_date timestamp without time zone,
     password CHARACTER VARYING(255) UNIQUE NOT NULL,
     reputation integer
+);
+
+DROP TABLE IF EXISTS public.user_vote_status;
+CREATE TABLE user_vote_status (
+    id CHARACTER VARYING(255) NOT NULL,
+    question_id CHARACTER VARYING(255),
+    answer_id CHARACTER VARYING(255)
 );
 
 DROP TABLE IF EXISTS public.question;
@@ -42,6 +50,7 @@ CREATE TABLE answer (
     id serial NOT NULL,
     submission_time timestamp without time zone,
     vote_number integer,
+    accepted_status BOOLEAN,
     question_id integer,
     user_id CHARACTER VARYING(255) NOT NULL,
     message text,
@@ -53,7 +62,7 @@ CREATE TABLE comment (
     id serial NOT NULL,
     question_id integer,
     answer_id integer,
-    user_id CHARACTER VARYING(255),
+    user_id CHARACTER VARYING(255) NOT NULL,
     message text,
     submission_time timestamp without time zone,
     edited_count integer
@@ -103,7 +112,8 @@ ALTER TABLE ONLY comment
 ALTER TABLE ONLY question_tag
     ADD CONSTRAINT fk_tag_id FOREIGN KEY (tag_id) REFERENCES tag(id);
 
-INSERT INTO user_account VALUES ('031f03690527', 'cabala@aol.com', '2017-04-28 08:29:00', '$2b$12$K8e2Rk64VBfdjU5fiEJ7.OYTXtuAxEz516wxPM/Q4hLSbt/r3znTC', NULL);
+INSERT INTO user_account VALUES ('031f03690527', 'Cabala23', 'cabala@aol.com', '2017-04-28 08:29:00', '$2b$12$K8e2Rk64VBfdjU5fiEJ7.OYTXtuAxEz516wxPM/Q4hLSbt/r3znTC', 0);
+INSERT INTO user_account VALUES ('77d37d4d19a0', 'MamaMare', 'mama@gmail.com', '2018-04-28 08:29:00', '$2b$12$86ErFe/t86Y/vp9WQfJwKO7TZ0vsJNjqkGq5WPItchkiwbL2w8xJG', 0);
 
 INSERT INTO question VALUES (0, '2017-04-28 08:29:00', 29, 0, '031f03690527', 'How to make lists in Python?', 'I am totally new to this, any hints?', NULL);
 INSERT INTO question VALUES (1, '2017-04-29 09:19:00', 15, 0, '031f03690527', 'Wordpress loading multiple jQuery Versions', 'I developed a plugin that uses the jquery booklet plugin (http://builtbywill.com/booklet/#/) this plugin binds a function to $ so I cann call $(".myBook").booklet();
@@ -119,8 +129,8 @@ INSERT INTO question VALUES (2, '2017-05-01 10:41:00', 1364, 0, '031f03690527', 
 ', NULL);
 SELECT pg_catalog.setval('question_id_seq', 2, true);
 
-INSERT INTO answer VALUES (1, '2017-04-28 16:49:00', 0, 1, '031f03690527', 'You need to use brackets: my_list = []', NULL);
-INSERT INTO answer VALUES (2, '2017-04-25 14:42:00', 0, 1, '031f03690527', 'Look it up in the Python docs', 'images/image2.jpg');
+INSERT INTO answer VALUES (1, '2017-04-28 16:49:00', 0, FALSE, 1, '77d37d4d19a0', 'You need to use brackets: my_list = []', NULL);
+INSERT INTO answer VALUES (2, '2017-04-25 14:42:00', 0, FALSE, 1, '77d37d4d19a0', 'Look it up in the Python docs', 'images/image2.jpg');
 SELECT pg_catalog.setval('answer_id_seq', 2, true);
 
 INSERT INTO comment VALUES (1, 0, NULL, '031f03690527', 'Please clarify the question as it is too vague!', '2017-05-01 05:49:00');

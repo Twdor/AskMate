@@ -1,0 +1,105 @@
+{% extends 'base_template.html' %}
+{% block title %} AskMate|{{ page_title }} {% endblock %}
+
+{% block content %}
+<table style="margin-top: 5px" class="table table-{{ night }} table-hover">
+  <thead>
+    <tr>
+      {% for head in users_table[0].keys() %}
+        {% if not user_id %}
+        <th scope="col">{{ head.replace('_', ' ').capitalize() if head != 'id' }}</th>
+        {% else %}
+        <th scope="col">{{ head.replace('_', ' ').capitalize() }}</th>
+        {% endif %}
+      {% endfor %}
+    </tr>
+  </thead>
+  <tbody>
+    {% if not user_id %}
+    {% for user in users_table %}
+    <tr>
+      {% for row in user.values() %}
+        {% if loop.index0 == 1 %}
+        <td><a href="/user/{{ user.id }}">{{ row }}</a></td>
+          {% elif row.__class__.__name__ == 'datetime' %}
+        <td>{{ row.strftime("%Y-%m-%d %H:%M") }}</td>
+        {% else %}
+        <td>{{ row if loop.index0 > 1 }}</td>
+        {% endif %}
+      {% endfor %}
+    </tr>
+    {% endfor %}
+    {% else %}
+    <tr>
+      {% for row in user_details.values() %}
+        {% if loop.index0 == 1 %}
+        <td><a href="/user/{{ user_id }}">{{ row }}</a></td>
+        {% elif row.__class__.__name__ == 'datetime' %}
+        <td>{{ row.strftime("%Y-%m-%d %H:%M") }}</td>
+        {% else %}
+        <td>{{ row }}</td>
+        {% endif %}
+      {% endfor %}
+    </tr>
+    {% endif %}
+  </tbody>
+</table>
+{% if user_id %}
+<section style="margin: 7%">
+  <table class="table table-{{ day }} table">
+    <thead>
+      {% if user_questions %}
+      <tr>
+        <th class="centered table-{{ night }}" scope="col">Questions</th>
+      </tr>
+      {% endif %}
+    </thead>
+    <tbody>
+      {% for question in user_questions %}
+      <tr class="table-{{ 'success' if true in is_question_solved(question_accepted_answers(question.id)) }}">
+        <td><a href="/question/{{ question.id }}">{{ question.title|capitalize|safe }}</a>
+          {% if true in is_question_solved(question_accepted_answers(question.id)) %}<a href="/question/{{ question.id }}" class="btn btn-outline-success float-end">Solved</a>{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+    <thead>
+      {% if user_answers %}
+      <tr>
+        <th class="centered table-{{ night }}" scope="col">Answers</th>
+      </tr>
+      {% endif %}
+    </thead>
+    <tbody>
+      {% for answer in user_answers %}
+      <tr class="table-{{ 'success' if answer.accepted_status }}">
+        <td><a href="/question/{{ answer.question_id }}#{{ answer.id }}">{{ answer.message|capitalize|safe }}</a>
+          {% if answer.accepted_status %}<a href="/question/{{ answer.question_id }}#{{ answer.id }}" class="btn btn-outline-success float-end">Accepted</a>{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+    <thead>
+      {% if user_comments %}
+      <tr>
+        <th class="centered table-{{ night }}" scope="col">Comments</th>
+      </tr>
+      {% endif %}
+    </thead>
+    <tbody>
+      {% for comment in user_comments %}
+      <tr>
+        <td>
+          {% if comment.question_id %}
+          <a href="/question/{{ comment.question_id }}">{{ comment.message|capitalize|safe }}</a>
+          {% elif comment.answer_id %}
+          <a href="/question/{{ question_id(comment.answer_id).get('question_id') }}#{{ comment.answer_id }}">{{ comment.message|capitalize|safe }}</a>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+</section>
+{% endblock %}

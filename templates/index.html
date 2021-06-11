@@ -7,7 +7,7 @@
 
 {% block sort %}
   {% if request.base_url == "http://127.0.0.1:5000/" %}
-    <a class="nav-link active" aria-current="page" href="/list">List all Questions</a>
+    <a class="nav-link active" aria-current="page" href="/list">All Questions</a>
   {% endif %}
   <form action="{{ url_for('search') }}" class="d-flex">
     {% for direction in ['Sort asc', 'Sort desc'] %}
@@ -36,13 +36,13 @@
   {% for question in all_questions %}
     <div id="{{ question['id'] }}" style="width: 50%; margin: 50px auto 50px auto; border-color: {{ font_color }}; background-color: {{ background_color }};" class="card">
         <div style="background-color: {{ background_color }};" class="centered card-header">
-          <a class="nav-link fs-2 link" href="/question/{{ question['id'] }}">
+          <a class="nav fs-2" href="/question/{{ question['id'] }}">
             {% if phrase %}
               {% for word in question.title.split() %}
-                {% if word in phrase %}
-                  <strong style="color: red">{{ word }}</strong>
+                {% if word.lower() == phrase.lower() and word.lower()|length > 2 %}
+                  <strong>{{ word }}</strong>
                 {% else %}
-                  {{ word }}
+                  {{ word|title|safe }}
                 {% endif %}
               {% endfor %}
             {% else %}
@@ -53,38 +53,48 @@
           <p style="color: {{ font_color }};" class="card-text fs-4 text">
             {% if phrase %}
               {% for word in question.message.split() %}
-                {% if word in phrase %}
+                {% if word.lower() == phrase.lower() and word.lower()|length > 2%}
                   <strong style="color: red">{{ word }}</strong>
                 {% else %}
-                  {{ word }}
+                  {{ word|safe }}
                 {% endif %}
               {% endfor %}
             {% else %}
               {{ question['message']|capitalize|safe }}
             {% endif %}</p>
           {% if question['image'] %}
-            <img style="margin-left: 40%; overflow: visible" src="{{ question['image'] }}" width="200px" alt="image uploaded by user"><br><br>
+            <img style="margin-left: 40%; overflow: visible" src="{{ question['image'] }}" width="400px" alt="image uploaded by user"><br><br>
           {% endif %}
-          <div class="btn-group">
+          <a class="btn btn-outline-secondary disabled">{{ count_question_answers(question.id).get("count") if count_question_answers(question.id).get("count") else 0 }} {{ "Answer" if count_question_answers(question.id).get("count") == 1 else "Answers" }}</a>
+          <div class="btn-group float-end">
             <a href="{{ url_for('vote', id=question['id'], value=1, page=request.base_url) }}" class="btn btn-outline-success" aria-current="page"><img style="width: 25px" src="/static/icons/vote_up.png" alt="vote up sign"></a>
             <a class="btn btn-outline-secondary disabled">{{ question['vote_number'] }}</a>
             <a href="{{ url_for('vote', id=question['id'], value=-1, page=request.base_url) }}" class="btn btn-outline-danger"><img style="width: 25px" src="/static/icons/vote_down.png" alt="vote down sign"></a>
-            <a class="btn btn-outline-secondary disabled">{{ count_question_answers(question.id).get("count") if count_question_answers(question.id).get("count") else 0 }} {{ "Answer" if count_question_answers(question.id).get("count") == 1 else "Answers" }}</a>
           </div>
         </div>
         <div class="centered card-footer text-muted">
-          {{ question['submission_time'].strftime("%Y-%m-%d %H:%M") }}<br>
+          {{ owner_user_name(question.user_id).get('user_name') }} posted {{ question['submission_time'] }}<br>
           <h6 class="centered">{{ question['view_number'] }} views</h6>
+        </div>
+        <div style="margin-bottom: 10px; display: inline-block; justify-content: left" class="card-footer text-muted">
+          {% for tag in question_tags(question.id) %}
+            <span class="badge rounded-pill bg-secondary" style="margin-left: 10px; float: right;">
+              <a id="tag-hyper" href="/tags/{{ tag.name }}" style="font-size: 17px">{{ tag.name }}</a>
+              <a href="{{ url_for('delete_form', page='question-{}-tag-{}'.format(question.id, tag.id)) }}">
+                <button type="button" class="btn-close {{ 'disabled' if not has_question_privilege(session, question.id) }}" aria-label="Close" style="float: right;"></button>
+              </a>
+            </span>
+          {% endfor %}
         </div>
         {% if phrase and answers %}
           <div class="card-footer fs-4 text">
             {% for answer in answers %}
               {% if answer.question_id == question.id %}
                 {% for word in answer.message.split() %}
-                  {% if word in phrase %}
+                  {% if word.lower() == phrase.lower() and word.lower()|length > 2 %}
                     <strong style="color: red">{{ word }}</strong>
                   {% else %}
-                    {{ word }}
+                    {{ word|safe }}
                   {% endif %}
                 {% endfor %}
               {% endif %}
