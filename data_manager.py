@@ -6,7 +6,7 @@ def add_user(cursor, data):
     query = """
         INSERT INTO user_account
         VALUES %(data)s"""
-    cursor.execute(query, {'data': data})
+    cursor.execute(query, {"data": data})
 
 
 @database_common.connection_handler
@@ -14,7 +14,7 @@ def add_user_vote_status(cursor, data):
     query = """
         INSERT INTO user_vote_status
         VALUES %(data)s"""
-    cursor.execute(query, {'data': data})
+    cursor.execute(query, {"data": data})
 
 
 @database_common.connection_handler
@@ -23,7 +23,7 @@ def get_vote_status(cursor, selected_page_id, page_id):
         SELECT id,  {page_id} as page_id
         FROM user_vote_status
         WHERE {selected_page_id} = %(page_id)s"""
-    cursor.execute(query, {'selected_page_id': selected_page_id, 'page_id': page_id})
+    cursor.execute(query, {"selected_page_id": selected_page_id, "page_id": page_id})
     return cursor.fetchall()
 
 
@@ -33,7 +33,7 @@ def update_reputation(cursor, user_id, value):
         UPDATE user_account
         SET reputation = reputation + %(value)s
         WHERE id = %(user_id)s"""
-    cursor.execute(query, {'user_id': user_id, 'value': value})
+    cursor.execute(query, {"user_id": user_id, "value": value})
 
 
 @database_common.connection_handler
@@ -81,7 +81,7 @@ def get_user_questions(cursor, user_id):
         FROM question
         WHERE user_id = %(user_id)s
         ORDER BY submission_time"""
-    cursor.execute(query, {'user_id': user_id})
+    cursor.execute(query, {"user_id": user_id})
     return cursor.fetchall()
 
 
@@ -91,7 +91,7 @@ def get_accepted_status_by_question_id(cursor, question_id):
         SELECT accepted_status
         FROM answer
         WHERE question_id = %(question_id)s"""
-    cursor.execute(query, {'question_id': question_id})
+    cursor.execute(query, {"question_id": question_id})
     return cursor.fetchall()
 
 
@@ -102,7 +102,7 @@ def get_user_answers(cursor, user_id):
         FROM answer
         WHERE user_id = %(user_id)s
         ORDER BY submission_time"""
-    cursor.execute(query, {'user_id': user_id})
+    cursor.execute(query, {"user_id": user_id})
     return cursor.fetchall()
 
 
@@ -113,7 +113,7 @@ def get_user_comments(cursor, user_id):
         FROM comment
         WHERE user_id = %(user_id)s
         ORDER BY submission_time"""
-    cursor.execute(query, {'user_id': user_id})
+    cursor.execute(query, {"user_id": user_id})
     return cursor.fetchall()
 
 
@@ -141,7 +141,7 @@ def get_username(cursor, email):
         SELECT user_name
         FROM user_account
         WHERE email_address = %(email)s"""
-    cursor.execute(query, {'email': email})
+    cursor.execute(query, {"email": email})
     return cursor.fetchone()
 
 
@@ -151,7 +151,7 @@ def get_user_pass(cursor, username):
         SELECT password
         FROM user_account
         WHERE email_address = %(username)s"""
-    cursor.execute(query, {'username': username})
+    cursor.execute(query, {"username": username})
     return cursor.fetchone()
 
 
@@ -161,14 +161,16 @@ def get_user_id(cursor, email):
         SELECT id
         FROM user_account
         WHERE email_address = %(email)s"""
-    cursor.execute(query, {'email': email})
+    cursor.execute(query, {"email": email})
     return cursor.fetchone()
 
 
 @database_common.connection_handler
-def get_all_questions(cursor, order_by='submission_time', order_dir='DESC'):
-    if (order_by in ['title', 'submission_time', 'message', 'view_number', 'vote_number']) \
-            and (order_dir.upper() in ['ASC', 'DESC']):
+def get_all_questions(cursor, order_by="submission_time", order_dir="DESC"):
+    if (
+        order_by
+        in ["title", "submission_time", "message", "view_number", "vote_number"]
+    ) and (order_dir.upper() in ["ASC", "DESC"]):
         query = f"""
             SELECT *
             FROM question
@@ -183,7 +185,7 @@ def get_question(cursor, question_id):
         SELECT *
         FROM question
         WHERE id = %(question_id)s"""
-    cursor.execute(query, {'question_id': question_id})
+    cursor.execute(query, {"question_id": question_id})
     return cursor.fetchone()
 
 
@@ -193,7 +195,7 @@ def get_question_img(cursor, question_id):
         SELECT image
         FROM question
         WHERE id = %(question_id)s"""
-    cursor.execute(query, {'question_id': question_id})
+    cursor.execute(query, {"question_id": question_id})
     return cursor.fetchall()
 
 
@@ -203,7 +205,7 @@ def get_question_id_by_answer_id(cursor, answer_id):
         SELECT question_id
         FROM answer
         WHERE id = %(answer_id)s"""
-    cursor.execute(query, {'answer_id': answer_id})
+    cursor.execute(query, {"answer_id": answer_id})
     return cursor.fetchone()
 
 
@@ -213,7 +215,7 @@ def get_question_id_by_comment_id(cursor, comment_id):
         SELECT question_id
         FROM comment
         WHERE id = %(comment_id)s"""
-    cursor.execute(query, {'comment_id': comment_id})
+    cursor.execute(query, {"comment_id": comment_id})
     return cursor.fetchone()
 
 
@@ -223,7 +225,7 @@ def get_answer_id_by_comment_id(cursor, comment_id):
         SELECT answer_id
         FROM comment
         WHERE id = %(comment_id)s"""
-    cursor.execute(query, {'comment_id': comment_id})
+    cursor.execute(query, {"comment_id": comment_id})
     return cursor.fetchone()
 
 
@@ -244,7 +246,7 @@ def get_answers_by_question_id(cursor, question_id):
         FROM answer
         WHERE question_id = %(question_id)s
         ORDER BY submission_time DESC"""
-    cursor.execute(query, {'question_id': question_id})
+    cursor.execute(query, {"question_id": question_id})
     return cursor.fetchall()
 
 
@@ -254,7 +256,7 @@ def get_answers_img_by_question_id(cursor, question_id):
         SELECT image
         FROM answer
         WHERE question_id = %(question_id)s"""
-    cursor.execute(query, {'question_id': question_id})
+    cursor.execute(query, {"question_id": question_id})
     return cursor.fetchall()
 
 
@@ -264,7 +266,7 @@ def get_answer_img(cursor, answer_id):
         SELECT image
         FROM answer
         WHERE id = %(answer_id)s"""
-    cursor.execute(query, {'answer_id': answer_id})
+    cursor.execute(query, {"answer_id": answer_id})
     return cursor.fetchall()
 
 
@@ -273,7 +275,7 @@ def add_answer(cursor, data):
     query = """
         INSERT INTO answer (submission_time, vote_number, accepted_status, question_id, user_id, message, image)
         VALUES %(data)s"""
-    cursor.execute(query, {'data': data})
+    cursor.execute(query, {"data": data})
 
 
 @database_common.connection_handler
@@ -282,7 +284,7 @@ def update_accepted_status(cursor, answer_id, status):
         UPDATE answer
         SET accepted_status = %(status)s
         WHERE id = %(answer_id)s"""
-    cursor.execute(query, {'answer_id': answer_id, 'status': status})
+    cursor.execute(query, {"answer_id": answer_id, "status": status})
 
 
 @database_common.connection_handler
@@ -290,7 +292,7 @@ def add_question(cursor, data):
     query = """
         INSERT INTO question (submission_time, view_number, vote_number, user_id, title, message, image)
         VALUES %(data)s"""
-    cursor.execute(query, {'data': data})
+    cursor.execute(query, {"data": data})
 
 
 @database_common.connection_handler
@@ -300,7 +302,7 @@ def get_tag_by_name(cursor, name):
         FROM tag
         WHERE name = %(name)s
     """
-    cursor.execute(query, {'name': name})
+    cursor.execute(query, {"name": name})
     return cursor.fetchone()
 
 
@@ -320,20 +322,20 @@ def get_question_tags(cursor, question_id):
         FROM tag 
         WHERE id IN (SELECT tag_id from question_tag WHERE question_id=%(question_id)s)
     """
-    cursor.execute(query, {'question_id': question_id})
+    cursor.execute(query, {"question_id": question_id})
     return cursor.fetchall()
 
 
 @database_common.connection_handler
 def get_questions_by_tag(cursor, tag):
-    tag_id = get_tag_by_name(tag)['id']
+    tag_id = get_tag_by_name(tag)["id"]
     query = """
         SELECT id, title
         FROM question
         WHERE id IN (SELECT question_id FROM question_tag WHERE tag_id = %(tag_id)s)
         ORDER BY submission_time
     """
-    cursor.execute(query, {'tag_id': tag_id})
+    cursor.execute(query, {"tag_id": tag_id})
     return cursor.fetchall()
 
 
@@ -344,7 +346,7 @@ def count_question_answers(cursor, question_id=None):
         FROM answer
         WHERE question_id = %(question_id)s
     """
-    cursor.execute(query, {'question_id': question_id})
+    cursor.execute(query, {"question_id": question_id})
     return cursor.fetchone()
 
 
@@ -354,12 +356,12 @@ def add_tag(cursor, name):
         INSERT INTO tag (name)
         VALUES (%(name)s)
     """
-    cursor.execute(query, {'name': name})
+    cursor.execute(query, {"name": name})
 
 
 @database_common.connection_handler
 def add_tag_to_question(cursor, tag_name, question_id):
-    tag_id = get_tag_by_name(tag_name)['id']
+    tag_id = get_tag_by_name(tag_name)["id"]
     query = """
         INSERT INTO question_tag
         VALUES (%s, %s)
@@ -368,12 +370,12 @@ def add_tag_to_question(cursor, tag_name, question_id):
 
 
 @database_common.connection_handler
-def delete_tag_from_question(cursor,question_id,tag_id):
+def delete_tag_from_question(cursor, question_id, tag_id):
     query = """
         DELETE FROM question_tag
         WHERE tag_id=%(tag_id)s AND question_id=%(question_id)s
     """
-    cursor.execute(query, {'tag_id': tag_id, 'question_id': question_id})
+    cursor.execute(query, {"tag_id": tag_id, "question_id": question_id})
 
 
 @database_common.connection_handler
@@ -381,7 +383,7 @@ def add_comment(cursor, data):
     query = """
         INSERT INTO comment (question_id, answer_id, user_id, message, submission_time, edited_count)
         VALUES %(data)s"""
-    cursor.execute(query, {'data': data})
+    cursor.execute(query, {"data": data})
 
 
 @database_common.connection_handler
@@ -399,7 +401,7 @@ def get_user_id_by_question_id(cursor, question_id):
         SELECT user_id
         FROM question
         WHERE id = %(question_id)s"""
-    cursor.execute(query, {'question_id': question_id})
+    cursor.execute(query, {"question_id": question_id})
     return cursor.fetchone()
 
 
@@ -409,7 +411,7 @@ def get_user_name_by_user_id(cursor, user_id):
         SELECT user_name
         FROM user_account
         WHERE id = %(user_id)s"""
-    cursor.execute(query, {'user_id': user_id})
+    cursor.execute(query, {"user_id": user_id})
     return cursor.fetchone()
 
 
@@ -419,7 +421,7 @@ def get_user_id_by_answer_id(cursor, answer_id):
         SELECT user_id
         FROM answer
         WHERE id = %(answer_id)s"""
-    cursor.execute(query, {'answer_id': answer_id})
+    cursor.execute(query, {"answer_id": answer_id})
     return cursor.fetchone()
 
 
@@ -429,7 +431,7 @@ def get_user_id_by_comment_id(cursor, comment_id):
         SELECT user_id
         FROM comment
         WHERE id = %(comment_id)s"""
-    cursor.execute(query, {'comment_id': comment_id})
+    cursor.execute(query, {"comment_id": comment_id})
     return cursor.fetchone()
 
 
@@ -439,7 +441,7 @@ def update_views(cursor, question_id):
         UPDATE question
         SET view_number = view_number + 1
         WHERE id = %(question_id)s"""
-    cursor.execute(query, {'question_id': question_id})
+    cursor.execute(query, {"question_id": question_id})
 
 
 @database_common.connection_handler
@@ -448,7 +450,15 @@ def update_question(cursor, question_id, title, message, image):
         UPDATE question
         SET title = %(title)s, message = %(message)s, image = %(image)s 
         WHERE id = %(question_id)s"""
-    cursor.execute(query, {'question_id': question_id, 'title': title, 'message': message, 'image': image})
+    cursor.execute(
+        query,
+        {
+            "question_id": question_id,
+            "title": title,
+            "message": message,
+            "image": image,
+        },
+    )
 
 
 @database_common.connection_handler
@@ -464,7 +474,7 @@ def delete_question(cursor, question_id):
         WHERE question_id = %(question_id)s;
         DELETE FROM question
         WHERE id = %(question_id)s"""
-    cursor.execute(query, {'question_id': question_id})
+    cursor.execute(query, {"question_id": question_id})
 
 
 @database_common.connection_handler
@@ -474,7 +484,7 @@ def delete_answer(cursor, answer_id):
         WHERE answer_id = %(answer_id)s;
         DELETE FROM answer
         WHERE id = %(answer_id)s"""
-    cursor.execute(query, {'answer_id': answer_id})
+    cursor.execute(query, {"answer_id": answer_id})
 
 
 @database_common.connection_handler
@@ -482,7 +492,7 @@ def delete_comment(cursor, comment_id):
     query = """
         DELETE FROM comment
         WHERE id = %(comment_id)s"""
-    cursor.execute(query, {'comment_id': comment_id})
+    cursor.execute(query, {"comment_id": comment_id})
 
 
 @database_common.connection_handler
@@ -491,7 +501,7 @@ def vote_question(cursor, question_id, value):
         UPDATE question
         SET vote_number = vote_number + %(value)s
         WHERE id = %(question_id)s"""
-    cursor.execute(query, {'question_id': question_id, 'value': value})
+    cursor.execute(query, {"question_id": question_id, "value": value})
 
 
 @database_common.connection_handler
@@ -500,7 +510,7 @@ def vote_answer(cursor, answer_id, value):
         UPDATE answer
         SET vote_number = vote_number + %(value)s
         WHERE id = %(answer_id)s"""
-    cursor.execute(query, {'answer_id': answer_id, 'value': value})
+    cursor.execute(query, {"answer_id": answer_id, "value": value})
 
 
 @database_common.connection_handler
@@ -510,7 +520,7 @@ def get_question_comments(cursor, question_id):
         FROM comment
         WHERE question_id = %(question_id)s
         ORDER BY submission_time"""
-    cursor.execute(query, {'question_id': question_id})
+    cursor.execute(query, {"question_id": question_id})
     return cursor.fetchall()
 
 
@@ -521,7 +531,7 @@ def get_answer_comments(cursor, answer_id=None):
         FROM comment
         WHERE answer_id = %(answer_id)s
         ORDER BY submission_time"""
-    cursor.execute(query, {'answer_id': answer_id})
+    cursor.execute(query, {"answer_id": answer_id})
     return cursor.fetchall()
 
 
@@ -531,7 +541,7 @@ def get_question_message(cursor, question_id):
         SELECT message
         FROM question
         WHERE id = %(question_id)s"""
-    cursor.execute(query, {'question_id': question_id})
+    cursor.execute(query, {"question_id": question_id})
     return cursor.fetchone()
 
 
@@ -541,7 +551,7 @@ def get_answer_message(cursor, answer_id):
         SELECT message
         FROM answer
         WHERE id = %(answer_id)s"""
-    cursor.execute(query, {'answer_id': answer_id})
+    cursor.execute(query, {"answer_id": answer_id})
     return cursor.fetchone()
 
 
@@ -551,7 +561,7 @@ def get_comment_message(cursor, comment_id):
         SELECT message
         FROM comment
         WHERE id = %(comment_id)s"""
-    cursor.execute(query, {'comment_id': comment_id})
+    cursor.execute(query, {"comment_id": comment_id})
     return cursor.fetchone()
 
 
@@ -561,12 +571,15 @@ def update_comment(cursor, comment_id, message, submission_time, edited_count):
         UPDATE comment
         SET message = %(message)s, submission_time = %(submission_time)s, edited_count = %(edited_count)s
         WHERE id = %(comment_id)s"""
-    cursor.execute(query, {'comment_id': comment_id,
-                           'message': message,
-                           'submission_time': submission_time,
-                           'edited_count': edited_count
-                           }
-                   )
+    cursor.execute(
+        query,
+        {
+            "comment_id": comment_id,
+            "message": message,
+            "submission_time": submission_time,
+            "edited_count": edited_count,
+        },
+    )
 
 
 @database_common.connection_handler
@@ -575,12 +588,15 @@ def update_answer(cursor, answer_id, submission_time, message, image):
         UPDATE answer
         SET submission_time = %(submission_time)s, message = %(message)s, image = %(image)s
         WHERE id = %(answer_id)s"""
-    cursor.execute(query, {'answer_id': answer_id,
-                           'submission_time': submission_time,
-                           'message': message,
-                           'image': image
-                           }
-                   )
+    cursor.execute(
+        query,
+        {
+            "answer_id": answer_id,
+            "submission_time": submission_time,
+            "message": message,
+            "image": image,
+        },
+    )
 
 
 @database_common.connection_handler
@@ -589,7 +605,7 @@ def get_comment_edited_count(cursor, comment_id):
         SELECT edited_count
         FROM comment
         WHERE id = %(comment_id)s"""
-    cursor.execute(query, {'comment_id': comment_id})
+    cursor.execute(query, {"comment_id": comment_id})
     return cursor.fetchone()
 
 
@@ -601,7 +617,7 @@ def get_questions_with_phrase(cursor, phrase):
         WHERE title ILIKE %(phrase)s 
         OR message ILIKE %(phrase)s
         OR id IN(SELECT question_id FROM answer WHERE message ILIKE %(phrase)s)"""
-    cursor.execute(query, {"phrase": f'%{phrase}%'})
+    cursor.execute(query, {"phrase": f"%{phrase}%"})
     return cursor.fetchall()
 
 
@@ -611,5 +627,5 @@ def get_answers_with_message_by_question_ids(cursor, question_ids, phrase):
         SELECT *
         FROM answer
         WHERE question_id IN %(question_ids)s AND message ILIKE %(phrase)s"""
-    cursor.execute(query, {"question_ids": question_ids, "phrase": f'%{phrase}%'})
+    cursor.execute(query, {"question_ids": question_ids, "phrase": f"%{phrase}%"})
     return cursor.fetchall()
