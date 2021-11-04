@@ -17,11 +17,8 @@ Execute db_dump.sql into your psql db. Create connection.properties in resources
 
 ## Implementation
 
-Home page(day mode):
-![Home page(day mode)](./screenshots/homeWhite.png)
-
-Home page(night mode):
-![Home page(night mode)](./screenshots/homeBlack.png)
+Home page:
+![Home page](./screenshots/homeWhite.png)
 
 Users table:
 ![Users table](./screenshots/users.png)
